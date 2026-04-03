@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindMath Arena</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <!-- Main styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <!-- D3.js v7 CDN -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Auth / Welcome View -->
+        <div id="view-auth" class="view active">
+            <div class="glass-panel auth-panel">
+                <h1 class="glow-text">MindMath Arena</h1>
+                <p>Master mental mathematics through visual manipulation.</p>
+                <form id="login-form">
+                    <input type="text" id="username" placeholder="Enter Player Name" required autocomplete="off">
+                    <button type="submit" class="btn btn-primary">Enter Arena</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard View -->
+        <div id="view-dashboard" class="view">
+            <header class="dashboard-header glass-panel">
+                <div class="player-info">
+                    <h2 id="dash-player-name">Player</h2>
+                    <div class="level-badge">Lvl <span id="dash-level">1</span></div>
+                </div>
+                <div class="xp-container">
+                    <div class="xp-bar-wrapper">
+                        <div id="dash-xp-fill" class="xp-fill"></div>
+                    </div>
+                    <span id="dash-xp-text">0 / 200 XP</span>
+                </div>
+            </header>
+
+            <main class="dashboard-content">
+                <section class="strategies-grid glass-panel">
+                    <h3>Strategies</h3>
+                    <div id="strategy-grid" class="grid-container">
+                        <!-- Strategy cards injected via JS -->
+                    </div>
+                </section>
+
+                <aside class="dashboard-sidebar">
+                    <div class="badges-panel glass-panel">
+                        <h3>Badges Unlocked</h3>
+                        <div id="badges-container" class="badges-list">
+                            <!-- Badges injected via JS -->
+                        </div>
+                    </div>
+                </aside>
+            </main>
+        </div>
+
+
+        <!-- Arena View -->
+        <div id="view-arena" class="view">
+            <!-- Narrative environmental background -->
+            <div id="arena-background"></div>
+            
+            <header class="arena-header glass-panel">
+                <div class="arena-buttons">
+                    <button id="btn-back-dashboard" class="btn btn-secondary">&larr; Retreat</button>
+                    <button id="btn-restart-problem" class="btn btn-secondary">🔄 Restart</button>
+                    <button id="btn-how-to-play" class="btn btn-secondary">❓ How To Play</button>
+                </div>
+                <h2 id="arena-strategy-title">Strategy Name</h2>
+                <div class="arena-stats">
+                    <div class="streak-counter">Streak: <span id="arena-streak">0</span></div>
+                    <div class="score">XP: <span id="arena-xp-total">0</span></div>
+                </div>
+            </header>
+
+            <main class="arena-play-area">
+                <!-- D3 tree will render inside SVG here -->
+                <div id="tree-container"></div>
+
+                <!-- Confetti canvas for celebrations -->
+                <canvas id="confetti-canvas"></canvas>
+
+                <div id="arena-hints" class="glass-panel hints-panel">
+                    <p id="hint-text">What can you do with this number?</p>
+                </div>
+            </main>
+
+            <!-- Success Overlay -->
+            <div id="success-overlay" class="overlay hidden">
+                <div class="success-content glass-panel bounce-in">
+                    <h2>Problem Solved!</h2>
+                    <p class="earned-xp">+<span id="result-xp">50</span> XP</p>
+                    <div class="stats-box"></div>
+                    <div id="badges-earned" class="earned-badges-container"></div>
+                    <button id="btn-next-problem" class="btn btn-primary">Next Challenge</button>
+                </div>
+            </div>
+
+            <!-- How To Play Overlay -->
+            <div id="how-to-play-overlay" class="overlay hidden" style="z-index:1100;">
+                <div class="glass-panel bounce-in howto-panel">
+                    <h2>How To Play</h2>
+                    <p class="howto-sub">You are doing number puzzles with bubbles.</p>
+                    <ol class="howto-steps">
+                        <li>Tap a number bubble to split it into smaller bubbles.</li>
+                        <li>Pick an operator first, then type numbers that make the same value.</li>
+                        <li>Drag one number bubble onto another to combine and make the final answer.</li>
+                    </ol>
+                    <div class="howto-example">
+                        Example: <strong>14</strong> can be <strong>10 + 4</strong> or <strong>7 + 7</strong>.
+                    </div>
+                    <div class="howto-actions">
+                        <button id="btn-howto-start" class="btn btn-primary">Let's Play</button>
+                        <button id="btn-howto-dont-show" class="btn btn-secondary">Don't Show Again</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Level Up Overlay -->
+            <div id="levelup-overlay" class="overlay hidden">
+                <div class="success-content glass-panel scale-in">
+                    <h2 class="glow-text">Level Up!</h2>
+                    <p class="huge-level">Level <span id="new-level-display">2</span></p>
+                    <button id="btn-continue-levelup" class="btn btn-primary">Continue</button>
+                </div>
+            </div>
+
+            <!-- Manual Merge Math Prompt -->
+            <div id="manual-math-overlay" class="overlay hidden" style="z-index:1000;">
+                <div class="glass-panel bounce-in" style="text-align: center; padding: 2rem;">
+                    <h2>Solve to Merge</h2>
+                    <div style="font-size: 1.5rem; margin: 1.5rem 0; display:flex; align-items:center; gap:10px; justify-content:center;">
+                        <span id="manual-math-source" class="node-label-box" style="padding:10px; background:var(--bg-lighter); border-radius:8px;">X</span>
+                        <select id="manual-math-op" style="font-size:1.5rem; padding:5px; border-radius:5px; background:var(--bg-color); color:white;">
+                            <option value="+">+</option>
+                            <option value="-">−</option>
+                            <option value="×">×</option>
+                            <option value="÷">÷</option>
+                        </select>
+                        <span id="manual-math-target" class="node-label-box" style="padding:10px; background:var(--bg-lighter); border-radius:8px;">Y</span>
+                        <span>=</span>
+                        <input type="number" id="manual-math-ans" style="font-size: 1.5rem; width: 80px; padding:5px; text-align:center; border-radius:5px; background:var(--bg-color); color:white;" autocomplete="off" placeholder="answer">
+                    </div>
+                    <div style="margin: 0.8rem 0; padding:0.8rem; border-radius:8px; background:rgba(139, 92, 246, 0.15); text-align:center;">
+                        <div id="manual-math-expression" style="font-size:1.3rem; color:var(--accent-purple); font-weight:bold; font-family:'Courier New', monospace; margin-bottom:0.4rem;">? + ? = ?</div>
+                        <div style="font-size:0.9rem; color:var(--text-muted);">Choose an operator and type your own answer.</div>
+                    </div>
+                    <button id="btn-manual-math-submit" class="btn btn-primary">Confirm</button>
+                    <button id="btn-manual-math-cancel" class="btn btn-secondary">Cancel</button>
+                    <div id="manual-math-feedback" style="color:var(--accent-red); margin-top:10px; min-height:20px;"></div>
+                </div>
+            </div>
+
+            <!-- Manual Split Prompt -->
+            <div id="manual-split-overlay" class="overlay hidden" style="z-index:1000;">
+                <div class="glass-panel bounce-in" style="text-align: center; padding: 2rem;">
+                    <h2>What can you do with <strong id="manual-split-target" style="font-size:1.2rem; color:var(--accent-cyan);">Z</strong>?</h2>
+                    <p style="margin-bottom:0.5rem;">Choose the operator first, then build your split.</p>
+                    <div class="split-op-buttons">
+                        <button class="split-op-btn active" data-op="+" type="button">+</button>
+                        <button class="split-op-btn" data-op="-" type="button">-</button>
+                        <button class="split-op-btn" data-op="×" type="button">×</button>
+                        <button class="split-op-btn" data-op="÷" type="button">÷</button>
+                    </div>
+                    <div style="margin:0.8rem 0; display:flex; justify-content:center; align-items:center; gap:8px;">
+                        <label for="manual-split-parts">Parts:</label>
+                        <select id="manual-split-parts" style="font-size:1rem; padding:4px 6px; border-radius:5px; background:var(--bg-color); color:white;">
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                        </select>
+                    </div>
+                    <div id="manual-split-parts-container" style="font-size: 1.5rem; margin: 1.2rem 0; display:flex; align-items:center; gap:10px; justify-content:center; flex-wrap:wrap;"></div>
+                    <div style="margin: 0.8rem 0; padding:0.8rem; border-radius:8px; background:rgba(16, 185, 129, 0.15); text-align:center;">
+                        <div id="manual-split-expression" style="font-size:1.3rem; color:var(--accent-emerald); font-weight:bold; font-family:'Courier New', monospace;">? + ? = ?</div>
+                        <div id="manual-split-result-feedback" style="font-size:0.85rem; margin-top:0.3rem; color:var(--text-muted);"></div>
+                    </div>
+                    <div id="manual-split-alternatives" style="margin:0.6rem 0 0.8rem; display:flex; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
+                    <div style="margin-bottom:0.4rem;">Target: <strong id="manual-split-target-eq" style="color:var(--accent-cyan);">target</strong></div>
+                    <input type="hidden" id="manual-split-v1" value="">
+                    <input type="hidden" id="manual-split-v2" value="">
+                    <input type="hidden" id="manual-split-op-value" value="+">
+                    <button id="btn-manual-split-submit" class="btn btn-primary">Split!</button>
+                    <button id="btn-manual-split-cancel" class="btn btn-secondary">Cancel</button>
+                    <div id="manual-split-feedback" style="color:var(--accent-red); margin-top:10px; min-height:20px;"></div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- Onboarding / Ghost Hand Overlay -->
+    <div id="onboarding-overlay" class="hidden">
+        <div id="ghost-hand" class="ghost-hand">
+            <svg viewBox="0 0 100 100" width="60" height="60">
+                <path d="M30 40 C 30 30, 40 20, 50 20 C 60 20, 70 30, 70 40 L 70 70 C 70 80, 60 90, 50 90 C 40 90, 30 80, 30 70 Z" fill="rgba(6, 182, 212, 0.4)" stroke="var(--accent-cyan)" stroke-width="3"/>
+                <circle cx="50" cy="40" r="8" fill="var(--accent-cyan)"/>
+                <path d="M50 40 L 50 15" stroke="var(--accent-cyan)" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Math Sprite Hint (Bottom) -->
+    <div id="arena-hint-box" class="math-sprite-hint hidden">
+        <span class="sprite-icon">💡</span>
+        <span id="arena-hint-text">Let's try splitting one of these!</span>
+    </div>
+
+    <!-- Sandbox Coach Observer / Retrospective Modal -->
+    <div id="retrospective-overlay" class="overlay hidden">
+        <div class="overlay-content medium-panel">
+            <h2 class="text-accent-blue" id="retro-title">Great Math! Let's Review</h2>
+            <p id="retro-desc">You found the answer! Compare your path with the optimal strategy.</p>
+            <div class="retro-comparison" style="display:flex; justify-content:space-between; text-align:left; margin:20px 0;">
+                <div class="retro-path" style="flex:1; border-right: 1px solid var(--glass-border); padding-right: 10px;">
+                    <h3 style="margin-bottom:10px;">Your Path</h3>
+                    <div id="retro-user-path" class="path-visual text-accent-red" style="font-size:1.1rem; line-height:1.5;"></div>
+                </div>
+                <div class="retro-path" style="flex:1; padding-left: 10px;">
+                    <h3 class="text-accent-green" style="margin-bottom:10px;">Optimal Path</h3>
+                    <div id="retro-optimal-path" class="path-visual text-accent-green" style="font-size:1.1rem; line-height:1.5;"></div>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="btn-retro-next">Next Challenge</button>
+        </div>
+    </div>
+
+    <!-- Notification Toasts -->
+    <div id="toast-container"></div>
+
+    <!-- Audio System -->
+    <script src="js/audio.js"></script>
+    <script src="js/gamification.js"></script>
+    
+    <!-- Strategy implementations -->
+    <script src="js/strategies/compensation.js"></script>
+    <script src="js/strategies/partitioning.js"></script>
+    <script src="js/strategies/bridging.js"></script>
+    <script src="js/strategies/near-doubles.js"></script>
+    <script src="js/strategies/mult-partition.js"></script>
+    <script src="js/strategies/multiply-nine.js"></script>
+    
+    <!-- Core Engine -->
+    <script src="js/drag-handler.js"></script>
+    <script src="js/tree-engine.js"></script>
+    <script src="js/sandbox-engine.js"></script>
+    <script src="js/ast-evaluator.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
