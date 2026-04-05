@@ -80,7 +80,46 @@
 
             <main class="arena-play-area">
                 <!-- D3 tree will render inside SVG here -->
-                <div id="tree-container"></div>
+                <div id="tree-container">
+                    <div id="learn-panel" class="hidden"></div>
+                    <svg id="tree-svg"></svg>
+                    <div id="learn-hint-banner" class="hidden"></div>
+                    <div id="status-bar"></div>
+
+                    <div id="merge-popup" class="popup hidden">
+                        <p class="mp-question"></p>
+                        <div class="mp-operators">
+                            <button class="mp-op" data-op="+">+</button>
+                            <button class="mp-op" data-op="-">−</button>
+                            <button class="mp-op" data-op="*">×</button>
+                            <button class="mp-op" data-op="/">÷</button>
+                        </div>
+                        <input class="mp-answer" type="number" placeholder="Type your answer">
+                        <button class="mp-confirm" disabled>Confirm</button>
+                    </div>
+
+                    <div id="efficiency-popup" class="popup hidden">
+                        <p class="ep-text"></p>
+                        <button class="ep-keep">Keep my choice</button>
+                        <button class="ep-switch">Show me the faster way</button>
+                    </div>
+
+                    <div id="retro-panel" class="popup hidden">
+                        <h3>Retrospective</h3>
+                        <div class="retro-cols">
+                            <div>
+                                <h4>Your path</h4>
+                                <p class="rp-your-path"></p>
+                            </div>
+                            <div>
+                                <h4>Fastest path</h4>
+                                <p class="rp-optimal-path"></p>
+                            </div>
+                        </div>
+                        <p class="rp-message"></p>
+                        <button class="rp-next">Next Question</button>
+                    </div>
+                </div>
 
                 <!-- Confetti canvas for celebrations -->
                 <canvas id="confetti-canvas"></canvas>
@@ -238,20 +277,10 @@
     <!-- Audio System -->
     <script src="js/audio.js"></script>
     <script src="js/gamification.js"></script>
-    
-    <!-- Strategy implementations -->
-    <script src="js/strategies/compensation.js"></script>
-    <script src="js/strategies/partitioning.js"></script>
-    <script src="js/strategies/bridging.js"></script>
-    <script src="js/strategies/near-doubles.js"></script>
-    <script src="js/strategies/mult-partition.js"></script>
-    <script src="js/strategies/multiply-nine.js"></script>
-    
-    <!-- Core Engine -->
-    <script src="js/drag-handler.js"></script>
-    <script src="js/tree-engine.js"></script>
-    <script src="js/sandbox-engine.js"></script>
-    <script src="js/ast-evaluator.js"></script>
+
+    <!-- Rebuilt App -->
+    <script src="js/practice.js"></script>
+    <script src="js/learn.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

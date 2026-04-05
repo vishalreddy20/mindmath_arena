@@ -51,9 +51,9 @@ try {
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if(!$user) {
-                $stmt = $pdo->prepare("INSERT INTO users (username, level, xp) VALUES (?, 1, 0)");
+                $stmt = $pdo->prepare("INSERT INTO users (username, level, xp) VALUES (?, 1, 115)");
                 $stmt->execute([$username]);
-                $user = ['id' => $pdo->lastInsertId(), 'username' => $username, 'level' => 1, 'xp' => 0];
+                $user = ['id' => $pdo->lastInsertId(), 'username' => $username, 'level' => 1, 'xp' => 115];
             }
             
             initSession($user['id'], $user['username']);
@@ -70,25 +70,18 @@ try {
             
         case 'problem':
             if(!checkSession()) throw new Exception("Unauthorized");
-            $strategy = $_GET['strategy'] ?? 'compensation';
-            $level = (int)($_GET['level'] ?? 1);
-            
-            require_once BASE_DIR . '/generators/base.php';
-            $genFile = BASE_DIR . "/generators/{$strategy}.php";
-            
-            if(file_exists($genFile)) {
-                require_once $genFile;
-                $genFunc = 'generate_' . str_replace('-', '_', $strategy);
-                if(function_exists($genFunc)) {
-                    $problem = $genFunc($level);
-                    echo json_encode($problem);
-                } else {
-                    throw new Exception("Generator function missing.");
-                }
-            } else {
-                // Fallbacks implemented inside generators/base.php
-                throw new Exception("Strategy generator not found on server.");
-            }
+            $strategy = $_GET['strategy'] ?? 'split_add';
+            $map = [
+                'partitioning' => 'split_add',
+                'bridging' => 'bridge_10',
+                'near-doubles' => 'near_doubles',
+                'compensation' => 'round_solve',
+                'mult-partition' => 'split_multiply',
+                'multiply-nine' => 'nines_trick'
+            ];
+            $module = $map[$strategy] ?? $strategy;
+            $_GET['module'] = $module;
+            include BASE_DIR . '/problem.php';
             break;
             
         case 'complete':

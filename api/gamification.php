@@ -8,16 +8,11 @@ function XPForNextLevel($currentLevel) {
 function processCompletion($pdo, $userId, $data) {
     $timeTaken = (int)($data['time'] ?? 30);
     $streak = (int)($data['streak'] ?? 1);
-    
-    // Base XP
-    $xpEarned = 50;
-    
-    // Time multiplier bonus
-    if ($timeTaken < 10) $xpEarned += 25;
-    else if ($timeTaken < 20) $xpEarned += 10;
-    
-    // Streak bonus
-    $xpEarned += min($streak * 5, 25);
+    $xpEarned = isset($data['earnedXp']) ? (int)$data['earnedXp'] : 50;
+
+    if ($xpEarned < 0) {
+        $xpEarned = 0;
+    }
     
     // Fetch current user state
     $stmt = $pdo->prepare("SELECT level, xp FROM users WHERE id = ?");
